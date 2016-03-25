@@ -1,0 +1,65 @@
+Nagios 多用户管理
+一、nagios除了管理员用户登录来管理往往是不够的，我们公司有广东、江西、北京等地的业务，甚至内部人员也需要来查看（只读）监控的项目或者告警信息。
+
+
+二、先备份我们需要修改的两个文件
+
+[root@localhost nagios]#cp /etc/nagios/htpasswd.users /etc/nagios/htpasswd.users.20150126bak
+ 
+[root@localhost nagios]#cp /etc/nagios/cgi.cfg /etc/nagios/cgi.cfg.20150126bak
+
+
+
+三、创建用户，创建用户的时候不要加-c，否则会覆盖该文件原有数据，xh是用户名。输入密码确定即可
+
+[root@localhost nagios]#htpasswd  /etc/nagios/htpasswd.users xh
+
+New password: 
+
+Re-type new password: 
+
+Updating password for user xh
+
+
+
+查看文件，创建用户成功，没有覆盖之前的用户
+
+[root@localhost nagios]# cat htpasswd.users
+
+nagiosadmin:TxLl3Z4Hu/rgM
+
+jxoperator:StFLcNbUYm8JQ
+
+bjoperator:mIIZ6TKa85iyo
+
+xh:HyPcV1ozVpCNg
+
+
+
+四、赋予权限，只读。经过测试，修改下面5行即可
+
+[root@localhost nagios]#vi /etc/nagios/cgi.cfg
+
+
+
+authorized_for_read_only=jxoperator,bjoperator,xh
+
+
+
+authorized_for_all_services=nagiosadmin,xh
+
+authorized_for_all_hosts=nagiosadmin,xh
+
+
+
+authorized_for_all_service_commands=nagiosadmin,xh
+
+authorized_for_all_host_commands=nagiosadmin,xh
+
+
+
+五、重启服务，使配置生效
+
+/etc/init.d/httpd restart
+
+/etc/init.d/nagios restart
